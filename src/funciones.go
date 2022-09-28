@@ -18,7 +18,7 @@ func dobleReturn(a int) (c, d int) {
 	return a, a * 2
 }
 
-func main() {
+func main5() {
 
 	normalFuncion("hola mundo")
 	tripleArgumeto(1, 2, "hola")

@@ -2,7 +2,7 @@ package main
 
 import "fmt"
 
-func main() {
+func main3() {
 
 	//Defer
 	defer fmt.Println("Chau, cierro base de datos")

@@ -2,9 +2,9 @@ package main
 
 import "fmt"
 
-func main() {
+func main8() {
 
-	m:= make(map[string]int)
+	m := make(map[string]int)
 
 	m["jose"] = 14
 	m["pepito"] = 20
@@ -13,7 +13,7 @@ func main() {
 
 	// Recorrer map
 	for i, v := range m {
-		fmt.Println(i,v)
+		fmt.Println(i, v)
 	}
 
 	// Encontrar Valor

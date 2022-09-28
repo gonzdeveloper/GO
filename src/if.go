@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-func main() {
+func main7() {
 
 	valor1 := 1
 	valor2 := 1

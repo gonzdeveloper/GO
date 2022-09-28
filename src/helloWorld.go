@@ -2,7 +2,7 @@ package main
 
 import "fmt"
 
-func main() {
+func main6() {
 
 	// Declaración de Constantes
 	const pi float64 = 3.14

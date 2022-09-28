@@ -2,13 +2,13 @@ package main
 
 import "fmt"
 
-func main(){
+func main2() {
 
 	// Arrays
 	var array [4]int
 	array[0] = 1
 	array[1] = 2
-	fmt.Println(array, len(array), cap(array))	
+	fmt.Println(array, len(array), cap(array))
 
 	// Slice
 	// no sabemos cuantos elementos vamos a tener

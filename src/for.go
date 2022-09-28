@@ -2,7 +2,7 @@ package main
 
 import "fmt"
 
-func main() {
+func main4() {
 
 	// For condicional
 	for i := 0; i < 10; i++ {

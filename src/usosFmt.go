@@ -4,7 +4,7 @@ import "fmt"
 
 // Otras utilidades https://pkg.go.dev/fmt
 
-func main() {
+func main11() {
 
 	// Declaración de Variables
 	helloMessage := "Hello"

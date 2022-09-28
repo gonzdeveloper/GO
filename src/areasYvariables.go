@@ -2,7 +2,7 @@ package main
 
 import "fmt"
 
-func main() {
+func main1() {
 
 	const baseCuadrado = 10
 	areaCuadrado := baseCuadrado * baseCuadrado
