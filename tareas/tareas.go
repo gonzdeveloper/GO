@@ -70,6 +70,11 @@ func main() {
 		descripcion: "Terminar en esta semana NodeJS",
 	}
 
+	t4 := &task{
+		nombre:      "Completar curso JS",
+		descripcion: "Terminar en esta semana JS",
+	}
+
 	lista := &taskList{
 		tasks: []*task{
 			t1, t2,
@@ -110,4 +115,16 @@ func main() {
 	fmt.Println("Estas son las lista completas:")
 	lista.imprimirListaCompletado()
 
+	lista2 := &taskList{
+		tasks: []*task{
+			t1, t4,
+		},
+	}
+
+	// Creamos un mapa de tareas --una asociación--
+	mapaTareas := make(map[string]*taskList)
+	mapaTareas["Gonzalo"] = lista2
+
+	fmt.Println("\nTareas de Gonzalo:")
+	mapaTareas["Gonzalo"].imprimirLista()
 }
