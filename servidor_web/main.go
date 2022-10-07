@@ -5,6 +5,7 @@ Por un tema de problemas con referancias puse todo en el mismo archivo
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -16,7 +17,9 @@ func main() {
 	server := NewServer(":3000")
 
 	// Cargo el mapeo de páginas
-	server.Handle("/", HandleRoot)
+	// GET
+	//server.Handle("GET", "/", HandleRoot)
+	server.Handle(http.MethodGet, "/", HandleRoot)
 
 	// Versión 1 sin chequeo
 	// server.Handle("/api", HandleHome)
@@ -25,7 +28,15 @@ func main() {
 	//server.Handle("/api", server.AddMiddleware(HandleHome, CheckAuth()))
 
 	// Versión 3 con ceque de autenticación más la ejecución del logging
-	server.Handle("/api", server.AddMiddleware(HandleHome, CheckAuth(), Logging()))
+	//server.Handle("/api", server.AddMiddleware(HandleHome, CheckAuth(), Logging()))
+
+	// Versión 4 mapeo con métodos o verbos
+	//POST
+	//server.Handle("POST", "/api", server.AddMiddleware(HandleHome, CheckAuth(), Logging()))
+	server.Handle(http.MethodPost, "/api", server.AddMiddleware(HandleHome, CheckAuth(), Logging()))
+
+	server.Handle(http.MethodPost, "/create", PostRequest)
+	server.Handle(http.MethodPost, "/user", UserPostRequest)
 
 	// Ahora escucho al servidor y sus peticiones
 	server.Listen()
@@ -64,8 +75,12 @@ func (s *Server) Listen() error {
 	}
 }
 
-func (s *Server) Handle(path string, handler http.HandlerFunc) {
-	s.router.rules[path] = handler
+func (s *Server) Handle(method string, path string, handler http.HandlerFunc) {
+	_, exist := s.router.rules[path]
+	if !exist {
+		s.router.rules[path] = make(map[string]http.HandlerFunc)
+	}
+	s.router.rules[path][method] = handler
 }
 
 // Chqueo de Middleware, se agregan los chqueos, como no sabemos
@@ -94,19 +109,20 @@ Cada Router debe tener conocimiento de que handler maneja cada ruta
 */
 
 type Router struct {
-	rules map[string]http.HandlerFunc
+	rules map[string]map[string]http.HandlerFunc
 }
 
 func NewRouter() *Router {
 	return &Router{
-		rules: make(map[string]http.HandlerFunc),
+		rules: make(map[string]map[string]http.HandlerFunc),
 	}
 }
 
+// Método necesario para pertenecer al grupo de Routers
 func (r *Router) ServeHTTP(w http.ResponseWriter, request *http.Request) {
 	// Con 'Fprintf' asignamos un escritor para poder enviar
 	// nuestro mensaje y se muestra en el navegador
-	handler, exist := r.FindHandler(request.URL.Path)
+	handler, methodExist, exist := r.FindHandler(request.URL.Path, request.Method)
 
 	if !exist {
 		// No existe la dirección
@@ -114,13 +130,21 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, request *http.Request) {
 		return // Para salir de la función
 	}
 
+	if !methodExist {
+		// No existe el metodo
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return // Para salir de la función
+	}
+
 	handler(w, request)
 }
 
-// Para buscar las rutas, si existen o no..?
-func (r *Router) FindHandler(path string) (http.HandlerFunc, bool) {
-	handler, exist := r.rules[path]
-	return handler, exist
+// Para buscar las rutas, si existen o no..? y que método viene
+func (r *Router) FindHandler(path string, method string) (http.HandlerFunc, bool, bool) {
+	_, exist := r.rules[path]
+	handler, methodExist := r.rules[path][method]
+
+	return handler, methodExist, exist
 }
 
 // ------------------- Router
@@ -134,6 +158,45 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hola desde el Endpoint de la API")
 }
 
+func PostRequest(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var metaData MetaData
+	err := decoder.Decode(&metaData)
+	if err != nil {
+		// para que se formatee el ERROR '%v'
+		fmt.Fprintf(w, "Error %v", err)
+		return
+	}
+
+	fmt.Fprintf(w, "Payload %v\n", metaData)
+}
+
+func UserPostRequest(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var user User
+	err := decoder.Decode(&user)
+	if err != nil {
+		// para que se formatee el ERROR '%v'
+		fmt.Fprintf(w, "Error %v", err)
+		return
+	}
+
+	fmt.Println(user.Name)
+
+	response, err := user.ToJson()
+
+	if err != nil {
+		//método propio de ResponseWriter
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// Para avisarle que es un Json y pueda parsearlo correctamente
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(response)
+
+}
+
 // ------------------- Handler
 
 // ------------------- Inicio Types
@@ -143,6 +206,21 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
 // ... son Handlers que devuelven otros Handlers evaluando
 // cierta lógica
 type Middleware func(http.HandlerFunc) http.HandlerFunc
+
+// interface genérica para los datos
+type MetaData interface{}
+
+// le agregamos una notación especial para avisarle que en el tipo Json
+// las llame de otra manera o vienen con otro nombre
+type User struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
+	Phone string `json:"phone"`
+}
+
+func (u *User) ToJson() ([]byte, error) {
+	return json.Marshal(u)
+}
 
 // ------------------- Types
 
