@@ -10,7 +10,7 @@ import (
 
 type calc struct{}
 
-// Recive function
+// Recive function - le da a la posibilidad al struct Calc en poder usar esta funcion
 func (calc) operacion(entrada string, operador string) int {
 	entradaLimpia := strings.Split(entrada, operador)
 	operador1 := parsear(entradaLimpia[0])

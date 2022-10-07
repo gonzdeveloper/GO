@@ -9,6 +9,7 @@ import (
 type escritorWeb struct{}
 
 func (escritorWeb) Write(p []byte) (int, error) {
+	// Convertir los bytes en algo legible
 	fmt.Println(string(p))
 	return len(p), nil
 }
